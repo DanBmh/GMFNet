@@ -37,7 +37,7 @@ python main_h36m_3d_eval.py --is_eval --kernel_size 10 --dct_n 20 --input_n 50 -
 ```
 
 ### To do
-- [x] Release the training code on Human3.6M dataswet
+- [x] Release the training code on Human3.6M dataset
 - [ ] Release the training code on amass dataset
 - [ ] Release the training code on CMU dataset
 
