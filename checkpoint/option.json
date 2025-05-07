@@ -4,7 +4,7 @@
     "ckpt": "checkpoint/",
     "skip_rate": 1,
     "skip_rate_test": 5,
-    "data_dir": null,
+    "data_dir": "/datasets/human36m/txt-poses/h3.6m/dataset/",
     "in_features": 66,
     "num_stage": 12,
     "d_model": 256,
@@ -16,7 +16,7 @@
     "max_norm": 10000,
     "epoch": 50,
     "batch_size": 32,
-    "test_batch_size": 32,
+    "test_batch_size": 256,
     "is_load": false,
     "dev": "cuda:0"
 }

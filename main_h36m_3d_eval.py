@@ -83,9 +83,9 @@ def run_model(net_pred, optimizer=None, is_train=0, data_loader=None, epo=1, opt
         n += batch_size
         p3d_h36 = p3d_h36.float().to(dev)
         p3d_src = p3d_h36.clone()[:, :, dim_used]
-        p3d_out_all = net_pred(p3d_src, input_n=in_n, output_n=10, itera=itera, dev=dev)
+        p3d_out_all = net_pred(p3d_src, input_n=in_n, output_n=out_n, itera=itera, dev=dev)
 
-        p3d_out_all = p3d_out_all[:, seq_in:].transpose(1, 2).reshape([batch_size, 10 * itera, -1])[:, :out_n]
+        p3d_out_all = p3d_out_all[:, seq_in:].transpose(1, 2).reshape([batch_size, out_n * itera, -1])[:, :out_n]
 
         p3d_out = p3d_h36.clone()[:, in_n:in_n + out_n]
         p3d_out[:, :, dim_used] = p3d_out_all
