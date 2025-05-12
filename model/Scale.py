@@ -3,22 +3,79 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+select_joints= [
+    "hip_right",
+    "hip_left",
+    "knee_right",
+    "knee_left",
+    "ankle_right",
+    "ankle_left",
+    "nose",
+    "shoulder_right",
+    "shoulder_left",
+    "elbow_right",
+    "elbow_left",
+    "wrist_right",
+    "wrist_left",
+]
 
 class AveargeJoint(nn.Module):
 
     def __init__(self):
         super().__init__()
 
-        self.left_leg_up = [0, 1]
-        self.left_leg_down = [2, 3]
-        self.right_leg_up = [4, 5]
-        self.right_leg_down = [6, 7]
-        self.torso = [8, 9]
-        self.head = [10, 11]
-        self.left_arm_up = [12, 13]
-        self.left_arm_down = [14, 15, 16]
-        self.right_arm_up = [17, 18]
-        self.right_arm_down = [19, 20, 21]
+        # self.left_leg_up = [0, 1]
+        # self.left_leg_down = [2, 3]
+        # self.right_leg_up = [4, 5]
+        # self.right_leg_down = [6, 7]
+        # self.torso = [8, 9]
+        # self.head = [10, 11]
+        # self.left_arm_up = [12, 13]
+        # self.left_arm_down = [14, 15, 16]
+        # self.right_arm_up = [17, 18]
+        # self.right_arm_down = [19, 20, 21]
+
+        self.left_leg_up = [
+            select_joints.index("hip_left"),
+            select_joints.index("knee_left"),
+        ]
+        self.left_leg_down = [
+            select_joints.index("knee_left"),
+            select_joints.index("ankle_left"),
+        ]
+        self.right_leg_up = [
+            select_joints.index("hip_right"),
+            select_joints.index("knee_right"),
+        ]
+        self.right_leg_down = [
+            select_joints.index("knee_right"),
+            select_joints.index("ankle_right"),
+        ]
+        self.torso = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+        ]
+        self.head = [
+            select_joints.index("nose"),
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+        ]
+        self.left_arm_up = [
+            select_joints.index("shoulder_left"),
+            select_joints.index("elbow_left"),
+        ]
+        self.left_arm_down = [
+            select_joints.index("elbow_left"),
+            select_joints.index("wrist_left"),
+        ]
+        self.right_arm_up = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("elbow_right"),
+        ]
+        self.right_arm_down = [
+            select_joints.index("elbow_right"),
+            select_joints.index("wrist_right"),
+        ]
 
     def forward(self, x):
         """
@@ -35,9 +92,9 @@ class AveargeJoint(nn.Module):
         x_torso = F.avg_pool2d(x[:, :, self.torso, :], kernel_size=(2, 1))
         x_head = F.avg_pool2d(x[:, :, self.head, :], kernel_size=(2, 1))
         x_leftarmup = F.avg_pool2d(x[:, :, self.left_arm_up, :], kernel_size=(2, 1))
-        x_leftarmdown = F.avg_pool2d(x[:, :, self.left_arm_down, :], kernel_size=(3, 1))
+        x_leftarmdown = F.avg_pool2d(x[:, :, self.left_arm_down, :], kernel_size=(len(self.left_arm_down), 1))
         x_rightarmup = F.avg_pool2d(x[:, :, self.right_arm_up, :], kernel_size=(2, 1))
-        x_rightarmdown = F.avg_pool2d(x[:, :, self.right_arm_down, :], kernel_size=(3, 1))
+        x_rightarmdown = F.avg_pool2d(x[:, :, self.right_arm_down, :], kernel_size=(len(self.right_arm_down), 1))
         x_part = torch.cat((x_leftlegup, x_leftlegdown, x_rightlegup, x_rightlegdown, x_torso, x_head, x_leftarmup,
                             x_leftarmdown, x_rightarmup, x_rightarmdown), dim=2)
 
@@ -51,11 +108,37 @@ class AveargePart(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.left_leg = [0, 1, 2, 3]
-        self.right_leg = [4, 5, 6, 7]
-        self.torso = [8, 9, 10, 11]
-        self.left_arm = [12, 13, 14, 15, 16]
-        self.right_arm = [17, 18, 19, 20, 21]
+        # self.left_leg = [0, 1, 2, 3]
+        # self.right_leg = [4, 5, 6, 7]
+        # self.torso = [8, 9, 10, 11]
+        # self.left_arm = [12, 13, 14, 15, 16]
+        # self.right_arm = [17, 18, 19, 20, 21]
+
+        self.left_leg = [
+            select_joints.index("hip_left"),
+            select_joints.index("knee_left"),
+            select_joints.index("ankle_left"),
+        ]
+        self.right_leg = [
+            select_joints.index("hip_right"),
+            select_joints.index("knee_right"),
+            select_joints.index("ankle_right"),
+        ]
+        self.torso = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+            select_joints.index("nose"),
+        ]
+        self.left_arm = [
+            select_joints.index("shoulder_left"),
+            select_joints.index("elbow_left"),
+            select_joints.index("wrist_left"),
+        ]
+        self.right_arm = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("elbow_right"),
+            select_joints.index("wrist_right"),
+        ]
 
     def forward(self, x):
         """
@@ -65,11 +148,11 @@ class AveargePart(nn.Module):
         b, v, t = x.shape
         x = x.reshape(b, 3, v // 3, t)  # [32, 66, 40] -> [32, 3, 22, 40]
 
-        x_leftleg = F.avg_pool2d(x[:, :, self.left_leg, :], kernel_size=(4, 1))
-        x_rightleg = F.avg_pool2d(x[:, :, self.right_leg, :], kernel_size=(4, 1))
-        x_torso = F.avg_pool2d(x[:, :, self.torso, :], kernel_size=(4, 1))
-        x_leftarm = F.avg_pool2d(x[:, :, self.left_arm, :], kernel_size=(5, 1))
-        x_rightarm = F.avg_pool2d(x[:, :, self.right_arm, :], kernel_size=(5, 1))
+        x_leftleg = F.avg_pool2d(x[:, :, self.left_leg, :], kernel_size=(len(self.left_leg), 1))
+        x_rightleg = F.avg_pool2d(x[:, :, self.right_leg, :], kernel_size=(len(self.right_leg), 1))
+        x_torso = F.avg_pool2d(x[:, :, self.torso, :], kernel_size=(len(self.torso), 1))
+        x_leftarm = F.avg_pool2d(x[:, :, self.left_arm, :], kernel_size=(len(self.left_arm), 1))
+        x_rightarm = F.avg_pool2d(x[:, :, self.right_arm, :], kernel_size=(len(self.right_arm), 1))
         x_body = torch.cat((x_leftleg, x_rightleg, x_torso, x_leftarm, x_rightarm), dim=2)
 
         x_body = x_body.reshape(b, -1, t).contiguous()
@@ -82,16 +165,58 @@ class PartLocalInform(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.left_leg_up = [0, 1]
-        self.left_leg_down = [2, 3]
-        self.right_leg_up = [4, 5]
-        self.right_leg_down = [6, 7]
-        self.torso = [8, 9]
-        self.head = [10, 11]
-        self.left_arm_up = [12, 13]
-        self.left_arm_down = [14, 15, 16]
-        self.right_arm_up = [17, 18]
-        self.right_arm_down = [19, 20, 21]
+        # self.left_leg_up = [0, 1]
+        # self.left_leg_down = [2, 3]
+        # self.right_leg_up = [4, 5]
+        # self.right_leg_down = [6, 7]
+        # self.torso = [8, 9]
+        # self.head = [10, 11]
+        # self.left_arm_up = [12, 13]
+        # self.left_arm_down = [14, 15, 16]
+        # self.right_arm_up = [17, 18]
+        # self.right_arm_down = [19, 20, 21]
+
+        self.left_leg_up = [
+            select_joints.index("hip_left"),
+            select_joints.index("knee_left"),
+        ]
+        self.left_leg_down = [
+            select_joints.index("knee_left"),
+            select_joints.index("ankle_left"),
+        ]
+        self.right_leg_up = [
+            select_joints.index("hip_right"),
+            select_joints.index("knee_right"),
+        ]
+        self.right_leg_down = [
+            select_joints.index("knee_right"),
+            select_joints.index("ankle_right"),
+        ]
+        self.torso = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+        ]
+        self.head = [
+            select_joints.index("nose"),
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+        ]
+        self.left_arm_up = [
+            select_joints.index("shoulder_left"),
+            select_joints.index("elbow_left"),
+        ]
+        self.left_arm_down = [
+            select_joints.index("elbow_left"),
+            select_joints.index("wrist_left"),
+        ]
+        self.right_arm_up = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("elbow_right"),
+        ]
+        self.right_arm_down = [
+            select_joints.index("elbow_right"),
+            select_joints.index("wrist_right"),
+        ]
 
     def forward(self, part):
         b, v, t = part.shape
@@ -133,17 +258,43 @@ class BodyLocalInform(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.left_leg = [0, 1, 2, 3]
-        self.right_leg = [4, 5, 6, 7]
-        self.torso = [8, 9, 10, 11]
-        self.left_arm = [12, 13, 14, 15, 16]
-        self.right_arm = [17, 18, 19, 20, 21]
+        # self.left_leg = [0, 1, 2, 3]
+        # self.right_leg = [4, 5, 6, 7]
+        # self.torso = [8, 9, 10, 11]
+        # self.left_arm = [12, 13, 14, 15, 16]
+        # self.right_arm = [17, 18, 19, 20, 21]
+
+        self.left_leg = [
+            select_joints.index("hip_left"),
+            select_joints.index("knee_left"),
+            select_joints.index("ankle_left"),
+        ]
+        self.right_leg = [
+            select_joints.index("hip_right"),
+            select_joints.index("knee_right"),
+            select_joints.index("ankle_right"),
+        ]
+        self.torso = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("shoulder_left"),
+            select_joints.index("nose"),
+        ]
+        self.left_arm = [
+            select_joints.index("shoulder_left"),
+            select_joints.index("elbow_left"),
+            select_joints.index("wrist_left"),
+        ]
+        self.right_arm = [
+            select_joints.index("shoulder_right"),
+            select_joints.index("elbow_right"),
+            select_joints.index("wrist_right"),
+        ]
 
     def forward(self, body):
 
         b, v, t = body.shape
         body = body.reshape(b, 3, v // 3, t)
-        x = body.new_zeros((b, 3, 22, t))
+        x = body.new_zeros(body.shape)
 
         # x[:, :, self.left_leg, :] = torch.cat((body[:, :, 0:1, :], body[:, :, 0:1, :], body[:, :, 0:1, :], body[:, :, 0:1, :]), -2)
         # x[:, :, self.right_leg, :] = torch.cat((body[:, :, 1:2, :], body[:, :, 1:2, :], body[:, :, 1:2, :], body[:, :, 2:3, :]), -2)
